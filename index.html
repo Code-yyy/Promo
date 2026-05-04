@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>IoMT Shield — Secure. Detect. Respond.</title>
+  <meta name="description" content="IoMT Shield is a edge security framework for Medical IoT: encryption + TinyML IDS + honeypot + SDN & dashboard response."/>
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#0f1a33;
+      --card2:#0d1730;
+      --text:#eaf0ff;
+      --muted:rgba(234,240,255,.72);
+      --line:rgba(255,255,255,.12);
+      --brand:#4f7dff;
+      --brand2:#22c6ff;
+      --ok:#2ee59d;
+      --warn:#ffcc66;
+      --bad:#ff5b6e;
+      --shadow:0 18px 50px rgba(0,0,0,.45);
+      --r:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      color:var(--text); background:
+        radial-gradient(900px 600px at 15% 15%, rgba(79,125,255,.22), transparent 60%),
+        radial-gradient(900px 600px at 85% 20%, rgba(34,198,255,.16), transparent 60%),
+        var(--bg);
+    }
+    a{color:inherit; text-decoration:none}
+    .container{width:min(1120px,92vw); margin:0 auto}
+
+    /* top bar */
+    .topbar{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(10px);
+      background:rgba(11,18,32,.72);
+      border-bottom:1px solid var(--line);
+    }
+    .topbar .inner{display:flex; justify-content:space-between; gap:12px; padding:10px 0; align-items:center}
+    .topbar small{color:var(--muted); font-weight:700}
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      border:1px solid var(--line); background:rgba(255,255,255,.06);
+      padding:8px 12px; border-radius:999px; font-weight:800; font-size:12px;
+    }
+    .btn{
+      border:1px solid var(--line); background:rgba(255,255,255,.06);
+      padding:12px 14px; border-radius:14px; font-weight:900; cursor:pointer;
+      transition:transform .08s ease, background .2s ease, border .2s ease;
+      color:var(--text);
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn.primary{
+      border-color:transparent;
+      background:linear-gradient(135deg,var(--brand),var(--brand2));
+      box-shadow:0 12px 28px rgba(79,125,255,.25);
+    }
+    .btn.ghost{background:rgba(255,255,255,.05)}
+    .nav{display:flex; gap:16px; align-items:center; flex-wrap:wrap}
+    .nav a{color:var(--muted); font-weight:800; font-size:13px}
+    .nav a:hover{color:var(--text)}
+    .hamburger{display:none}
+
+    /* hero */
+    header{padding:38px 0 24px}
+    .hero{
+      display:grid; grid-template-columns:1.1fr .9fr; gap:18px; align-items:start;
+    }
+    h1{margin:10px 0 10px; font-size:clamp(34px,4vw,52px); line-height:1.05}
+    .grad{background:linear-gradient(135deg,var(--brand),var(--brand2)); -webkit-background-clip:text; background-clip:text; color:transparent}
+    .lead{margin:0 0 16px; color:var(--muted); line-height:1.6; font-size:16px}
+    .cta{display:flex; gap:10px; flex-wrap:wrap; margin:16px 0}
+    .stats{display:flex; gap:10px; flex-wrap:wrap}
+    .stat{
+      background:rgba(255,255,255,.06); border:1px solid var(--line);
+      padding:10px 12px; border-radius:16px; min-width:150px;
+    }
+    .stat b{display:block; font-size:18px}
+    .stat span{color:var(--muted); font-size:12px; font-weight:800}
+
+    /* cards */
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow);
+    }
+    .productCard{padding:14px}
+    .prodImg{
+      width:100%; height:320px; object-fit:cover;
+      border-radius:16px; border:1px solid var(--line); background:#000;
+      display:block;
+    }
+    .thumbs{display:flex; gap:10px; margin-top:10px; flex-wrap:wrap}
+    .thumb{
+      width:64px; height:54px; border-radius:14px; overflow:hidden;
+      border:1px solid var(--line); background:rgba(255,255,255,.05);
+      cursor:pointer; padding:0;
+    }
+    .thumb img{width:100%; height:100%; object-fit:cover; display:block}
+    .thumb.active{outline:2px solid rgba(79,125,255,.7)}
+    .prodInfo{padding:10px 2px 2px}
+    .prodTitle{display:flex; justify-content:space-between; align-items:center; gap:10px}
+    .badge{
+      font-size:12px; font-weight:900;
+      padding:7px 10px; border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(34,198,255,.12);
+    }
+    .bullets{display:grid; gap:6px; margin:10px 0 12px}
+    .bullets div{color:var(--muted); font-weight:800}
+    .priceRow{display:flex; justify-content:space-between; align-items:end; gap:10px; flex-wrap:wrap}
+    .price{font-size:28px; font-weight:1000}
+    .sub{color:var(--muted); font-size:12px; font-weight:800}
+
+    /* sections */
+    section{padding:46px 0}
+    .secHead{margin-bottom:14px}
+    .secHead h2{margin:0 0 6px; font-size:28px}
+    .secHead p{margin:0; color:var(--muted); line-height:1.6}
+
+    .grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+    .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+    .grid2{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+    .tile{padding:14px}
+    .tile h3{margin:0 0 8px}
+    .tile p{margin:0; color:var(--muted); line-height:1.6}
+    .pillLine{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap}
+    .pill2{
+      border:1px solid var(--line); background:rgba(255,255,255,.06);
+      padding:7px 10px; border-radius:999px; font-size:12px; font-weight:900; color:var(--muted)
+    }
+
+    /* video */
+    .videoWrap{padding:14px}
+    video{
+      width:100%; border-radius:16px; border:1px solid var(--line); background:#000;
+    }
+    .hint{color:var(--muted); font-size:12px; font-weight:800; margin-top:8px}
+
+    /* pricing */
+    .priceCard{padding:16px; position:relative}
+    .ribbon{
+      position:absolute; top:12px; right:12px;
+      background:linear-gradient(135deg,var(--brand),var(--brand2));
+      color:white; font-weight:1000; font-size:12px;
+      padding:8px 10px; border-radius:999px;
+    }
+    ul{margin:10px 0 0; padding-left:18px; color:var(--muted); line-height:1.65}
+    .big{font-size:34px; font-weight:1000; margin:6px 0}
+
+    /* contact */
+    form{display:grid; gap:10px}
+    input, textarea, select{
+      width:100%; padding:12px 12px; border-radius:14px;
+      border:1px solid var(--line); background:rgba(255,255,255,.06);
+      color:var(--text); outline:none;
+    }
+    input:focus, textarea:focus, select:focus{border-color:rgba(79,125,255,.7)}
+    label{font-weight:900; font-size:12px; color:var(--muted)}
+    .row{display:grid; gap:6px}
+
+    footer{
+      padding:24px 0; border-top:1px solid var(--line);
+      color:var(--muted);
+    }
+    .foot{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
+
+    /* responsive */
+    @media (max-width: 980px){
+      .hero{grid-template-columns:1fr}
+      .grid4,.grid3,.grid2{grid-template-columns:1fr}
+      .nav{display:none}
+      .hamburger{display:inline-block}
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="container inner">
+      <small><b>IoMT Shield</b> —  Edge security framework for Medical IoT</small>
+      <div class="nav">
+        <a href="#components">Components</a>
+        <a href="#video">Video</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <button class="btn primary" onclick="document.querySelector('#contact').scrollIntoView({behavior:'smooth'})">
+        Request Demo
+      </button>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <header class="container">
+    <div class="hero">
+      <div>
+        <span class="chip">🛡️ Secure • Detect • Respond</span>
+        <h1>IoMT Shield: <span class="grad">Real-time protection</span> for Medical IoT gateways</h1>
+        <p class="lead">
+          IoMT Shield is an end-to-end security framework for remote patient monitoring (RPM) environments.
+          It secures telemetry in transit, detects network attacks at the edge using TinyML, gathers threat intelligence via honeypots,
+          and enables automated mitigation through SDN and a dashboard.
+        </p>
+
+        <div class="cta">
+          <button class="btn primary" onclick="document.querySelector('#pricing').scrollIntoView({behavior:'smooth'})">Buy / Pricing</button>
+          <button class="btn ghost" onclick="document.querySelector('#video').scrollIntoView({behavior:'smooth'})">Watch Demo Video</button>
+          <button class="btn ghost" onclick="document.querySelector('#components').scrollIntoView({behavior:'smooth'})">See All Components</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><b>Edge TinyML IDS</b><span>BENIGN / SUSPICIOUS / ATTACK</span></div>
+          <div class="stat"><b>Encryption Pipeline</b><span>Secure transmission + integrity</span></div>
+          <div class="stat"><b>SDN + Dashboard</b><span>Detect → Block → Visualize</span></div>
+        </div>
+      </div>
+
+      <!-- Product card -->
+      <div class="card productCard">
+        <!-- Replace these image filenames with your actual images -->
+        <img id="mainImg" class="prodImg" src="5.jpeg" alt="IoMT Shield device showcase">
+
+        <div class="thumbs">
+          <button class="thumb active" onclick="swap('1.jpeg', this)">
+            <img src="1.jpeg" alt="">
+          </button>
+          <button class="thumb" onclick="swap('2.jpeg', this)">
+            <img src="2.jpeg" alt="">
+          </button>
+          <button class="thumb" onclick="swap('3.jpeg', this)">
+            <img src="3.jpeg" alt="">
+          </button>
+          <button class="thumb" onclick="swap('4.jpeg', this)">
+            <img src="4.jpeg" alt="">
+          </button>
+        </div>
+
+        <div class="prodInfo">
+          <div class="prodTitle">
+            <h2 style="margin:6px 0;">IoMT Shield Gateway Unit</h2>
+            <span class="badge">Prototype</span>
+          </div>
+
+          <div class="bullets">
+            <div>Secures telemetry (ESP32 → Gateway)</div>
+            <div>TinyML IDS on Raspberry Pi (real-time)</div>
+            <div>Honeypot threat logging (intel)</div>
+            <div>SDN rules + Dashboard alerts</div>
+          </div>
+
+          <div class="priceRow">
+            <div>
+              <div class="price">$70</div>
+              <div class="sub">Starter kit • demo-ready</div>
+            </div>
+            <button class="btn primary" onclick="document.querySelector('#contact').scrollIntoView({behavior:'smooth'})">
+              Get Quote
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Components -->
+  <section id="components">
+    <div class="container">
+      <div class="secHead">
+        <h2>What’s inside IoMT Shield</h2>
+        <p>Four integrated components that work together for secure medical IoT operation.</p>
+      </div>
+
+      <div class="grid4">
+        <div class="card tile">
+          <h3>1) Secure Transmission</h3>
+          <p>
+            Patient telemetry is protected before reaching the gateway using lightweight encryption and integrity checks.
+          </p>
+          <div class="pillLine">
+            <span class="pill2">ESP32 → Gateway</span>
+            <span class="pill2">Confidentiality</span>
+            <span class="pill2">Integrity</span>
+          </div>
+        </div>
+
+        <div class="card tile">
+          <h3>2) TinyML Intrusion Detection</h3>
+          <p>
+            A lightweight deep learning model runs on Raspberry Pi to detect attacks in real time and classify traffic.
+          </p>
+          <div class="pillLine">
+            <span class="pill2">TinyML</span>
+            <span class="pill2">Edge inference</span>
+            <span class="pill2">events.jsonl</span>
+          </div>
+        </div>
+
+        <div class="card tile">
+          <h3>3) Honeypot Intelligence</h3>
+          <p>
+            A decoy service attracts attackers, captures scans/brute-force patterns, and generates threat intelligence logs.
+          </p>
+          <div class="pillLine">
+            <span class="pill2">Decoy</span>
+            <span class="pill2">Threat intel</span>
+            <span class="pill2">Dataset support</span>
+          </div>
+        </div>
+
+        <div class="card tile">
+          <h3>4) SDN + Dashboard</h3>
+          <p>
+            Structured security events trigger SDN rules for blocking and provide real-time visibility through a dashboard.
+          </p>
+          <div class="pillLine">
+            <span class="pill2">Detect → Block</span>
+            <span class="pill2">Dashboards</span>
+            <span class="pill2">Policy automation</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section>
+    <div class="container">
+      <div class="secHead">
+        <h2>How it works (Simple flow)</h2>
+        <p>From device telemetry to automated network response.</p>
+      </div>
+
+      <div class="grid3">
+        <div class="card tile">
+          <h3>Capture & Protect</h3>
+          <p>Medical data is generated and transmitted securely to the gateway with encryption + integrity verification.</p>
+        </div>
+        <div class="card tile">
+          <h3>Detect at the Edge</h3>
+          <p>The Raspberry Pi analyzes traffic and labels activity as BENIGN / SUSPICIOUS / ATTACK in real time.</p>
+        </div>
+        <div class="card tile">
+          <h3>Respond & Visualize</h3>
+          <p>Logs feed SDN + dashboard: block malicious sources and display alerts with evidence and metadata.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Video -->
+  <section id="video">
+    <div class="container">
+      <div class="secHead">
+        <h2>Product video</h2>
+      </div>
+
+      <div class="card videoWrap">
+        <!-- Option A: Local MP4 -->
+        <video controls poster="5.jpeg">
+          <source src="product.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        
+
+        <!-- Option B: YouTube embed (uncomment)
+        <div style="position:relative; padding-top:56.25%; border-radius:16px; overflow:hidden; border:1px solid var(--line);">
+          <iframe style="position:absolute; inset:0; width:100%; height:100%;"
+            src="https://www.youtube.com/embed/YOUR_ID"
+            title="IoMT Shield Demo" frameborder="0" allowfullscreen></iframe>
+        </div>
+        -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Specs / Benefits -->
+  <section>
+    <div class="container">
+      <div class="secHead">
+        <h2>Why it’s valuable</h2>
+        <p>Designed for healthcare-like conditions where speed, reliability, and traceability matter.</p>
+      </div>
+
+      <div class="grid2">
+        <div class="card tile">
+          <h3>Key benefits</h3>
+          <ul>
+            <li>Reduces risk of disruption in remote patient monitoring environments</li>
+            <li>Runs detection at the gateway (no cloud dependency)</li>
+            <li>Produces structured evidence for response and audits</li>
+            <li>Supports automated blocking via SDN</li>
+          </ul>
+        </div>
+
+        <div class="card tile">
+          <h3>Included outputs</h3>
+          <ul>
+            <li>Console decision output for each window (traffic summary + label)</li>
+            <li>Structured event logs (events.jsonl) for SDN and dashboard</li>
+            <li>Honeypot logs for threat intelligence / dataset generation</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing">
+    <div class="container">
+      <div class="secHead">
+        <h2>Pricing</h2>
+        <p>Simple packages for demo, lab testing, or custom deployments.</p>
+      </div>
+
+      <div class="grid3">
+        <div class="card priceCard">
+          <h3>Starter</h3>
+          <div class="big">$70</div>
+          <p class="lead" style="font-size:14px">Best for project demos & prototypes.</p>
+          <ul>
+            <li>IoMT Shield bundle</li>
+            <li>Logging + IDS runtime</li>
+            <li>Setup guide</li>
+          </ul>
+          <div style="margin-top:12px">
+            <button class="btn primary" onclick="document.querySelector('#contact').scrollIntoView({behavior:'smooth'})">Request Starter</button>
+          </div>
+        </div>
+
+        <div class="card priceCard">
+          <div class="ribbon">Popular</div>
+          <h3>Lab</h3>
+          <div class="big">$199</div>
+          <p class="lead" style="font-size:14px">For research labs & repeated testing.</p>
+          <ul>
+            <li>Starter + benchmarking scripts</li>
+            <li>Honeypot logging & analysis</li>
+            <li>SDN integration guidance</li>
+          </ul>
+          <div style="margin-top:12px">
+            <button class="btn primary" onclick="document.querySelector('#contact').scrollIntoView({behavior:'smooth'})">Request Lab</button>
+          </div>
+        </div>
+
+        <div class="card priceCard">
+          <h3>Enterprise</h3>
+          <div class="big">Custom</div>
+          <p class="lead" style="font-size:14px">Hospitals, integrators, vendors.</p>
+          <ul>
+            <li>Custom SDN policies</li>
+            <li>Dashboard customization</li>
+            <li>Deployment support</li>
+          </ul>
+          <div style="margin-top:12px">
+            <button class="btn primary" onclick="document.querySelector('#contact').scrollIntoView({behavior:'smooth'})">Contact Sales</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact">
+    <div class="container">
+      <div class="secHead">
+        <h2>Contact / Request demo</h2>
+      </div>
+
+      <div class="grid2">
+        <div class="card tile">
+          <h3>Get in touch</h3>
+          <p class="lead" style="font-size:14px">
+            Tell us your use case (demo, lab, deployment). We’ll respond with setup steps and pricing details.
+          </p>
+          <div class="pillLine">
+            <span class="pill2">Edge Security</span>
+            <span class="pill2">IoMT</span>
+            <span class="pill2">SDN Response</span>
+          </div>
+        </div>
+
+        <div class="card tile">
+          <form onsubmit="event.preventDefault(); alert('Saved (demo). Connect this form to Google Forms / backend for real submissions.');">
+            <div class="row">
+              <label>Name</label>
+              <input required placeholder="Your name">
+            </div>
+            <div class="row">
+              <label>Email</label>
+              <input required type="email" placeholder="you@example.com">
+            </div>
+            <div class="row">
+              <label>Package</label>
+              <select>
+                <option>Starter</option>
+                <option>Lab</option>
+                <option>Enterprise</option>
+              </select>
+            </div>
+            <div class="row">
+              <label>Message</label>
+              <textarea rows="4" placeholder="Your requirements…"></textarea>
+            </div>
+            <button class="btn primary" type="submit">Send</button>
+            <div class="hint">This is a demo form (frontend). You can link it to Google Forms later.</div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container foot">
+      <div>© <span id="y"></span> IoMT Shield</div>
+      <div style="display:flex; gap:14px; flex-wrap:wrap">
+        <a href="#components">Components</a>
+        <a href="#video">Video</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Year
+    document.getElementById("y").textContent = new Date().getFullYear();
+
+    // Image swap
+    function swap(src, btn){
+      document.getElementById("mainImg").src = src;
+      document.querySelectorAll(".thumb").forEach(t => t.classList.remove("active"));
+      btn.classList.add("active");
+    }
+  </script>
+</body>
+</html>
